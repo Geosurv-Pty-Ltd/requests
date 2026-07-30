@@ -126,13 +126,14 @@ site/                           the viewer. One HTML file, no dependencies
 
 ## Known operational notes
 
-- **The cron had not fired on its own as at the first handover.** The job is proven by manual
-  dispatch and by push, but GitHub had not triggered it on the schedule after ~2.5 hours and
-  ~10 slots, with the workflow reporting `state=active` and nothing misconfigured. GitHub is
-  slow to start scheduling brand-new workflows. Check the Actions tab for a run whose event is
-  `schedule`. If it never schedules, lengthen the interval (hourly is honoured far more
-  reliably) and change the viewer header to match rather than keep promising 15 minutes.
-  A refresh can always be forced: Actions → Refresh client viewer → Run workflow.
+- **GitHub takes a while to start scheduling a brand-new workflow.** On first deployment it was
+  ~104 minutes and about ten missed slots before the first `schedule` run appeared, with the
+  workflow reporting `state=active` and nothing misconfigured the whole time. If this is rebuilt
+  from scratch, expect the same silence at first rather than hunting for a fault.
+- **Scheduled runs are not punctual.** The first one arrived 11 minutes after its slot. "Every 15
+  minutes" is a target, not a guarantee, which is why the viewer prints the real snapshot time
+  beside that claim. A refresh can always be forced: Actions → Refresh client viewer → Run
+  workflow.
 - The cron sits at 7/22/37/52 past rather than `*/15` on purpose. GitHub documents that runs
   scheduled on high-load minutes are delayed or dropped, and the quarter-hour marks are the
   busiest on the shared queue.
