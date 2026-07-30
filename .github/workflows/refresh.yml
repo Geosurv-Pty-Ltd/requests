@@ -6,9 +6,14 @@ name: Refresh client viewer
 
 on:
   schedule:
-    # Every 15 minutes. GitHub can run scheduled jobs late under load, which is
-    # why the viewer shows the real snapshot time next to the 15 minute promise.
-    - cron: '*/15 * * * *'
+    # Every 15 minutes, deliberately offset off the quarter-hour. GitHub's own
+    # docs warn that runs scheduled on high-load minutes get delayed or dropped,
+    # and the hour and quarter-hour marks are the busiest on the shared queue.
+    # A plain '*/15' produced no scheduled run at all in the first 90 minutes.
+    # GitHub can still run late under load, which is why the viewer shows the
+    # real snapshot time next to the 15 minute promise rather than implying
+    # freshness it cannot guarantee.
+    - cron: '7,22,37,52 * * * *'
   workflow_dispatch:
   push:
     branches: [main]
