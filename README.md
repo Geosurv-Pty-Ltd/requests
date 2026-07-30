@@ -4,7 +4,7 @@ A free, public, no-login, read-only viewer that lets a Geosurv client watch thei
 survey requests move through the pipeline. Clients open it from a link in the automated
 status emails they already receive.
 
-Live: `https://bonsubox.github.io/geosurv-requests/?c=<company token>`
+Live: `https://geosurv-pty-ltd.github.io/requests/?c=<company token>`
 
 Source of truth is the monday board **SPW Service Requests Register** (`5029989258`). A
 GitHub Actions cron reads the board every 15 minutes, builds one client-safe JSON payload
@@ -103,7 +103,7 @@ node -e "console.log(require('crypto').randomBytes(16).toString('hex'))"
 ```
 
 Then run the workflow (Actions → Refresh client viewer → Run workflow) and send that
-company `https://bonsubox.github.io/geosurv-requests/?c=<their token>`. The company label
+company `https://geosurv-pty-ltd.github.io/requests/?c=<their token>`. The company label
 must already exist on the board's Company column. A company with no rows yet gets an empty
 tracker rather than a broken link.
 
@@ -134,3 +134,4 @@ site/                           the viewer. One HTML file, no dependencies
 - The "Request a change" button opens the public **Request a change** WorkForm with the
   Request ID pre-filled through the `rid` URL parameter. The form URL is a constant near
   the top of the script in `site/index.html`.
+
