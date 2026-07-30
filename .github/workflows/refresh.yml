@@ -1,0 +1,60 @@
+name: Refresh client viewer
+
+# Rebuilds the per-company payloads from the monday board and redeploys GitHub
+# Pages. Nothing is committed: dist/ goes straight to Pages as an artifact, so
+# the client URL tokens never appear in this public repository.
+
+on:
+  schedule:
+    # Every 15 minutes. GitHub can run scheduled jobs late under load, which is
+    # why the viewer shows the real snapshot time next to the 15 minute promise.
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'README.md'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time. Do not cancel a run in progress: a cancelled deploy
+# would leave the previously published snapshot in place, which is stale data.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      # The whitelist guard. If this fails, nothing is published.
+      - name: Test the payload whitelist
+        run: node --test
+
+      - name: Build payloads from the monday board
+        env:
+          MONDAY_API_TOKEN: ${{ secrets.MONDAY_API_TOKEN }}
+          COMPANY_TOKENS: ${{ secrets.COMPANY_TOKENS }}
+        run: node scripts/build.mjs
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+          retention-days: 1
+
+      - id: deploy
+        uses: actions/deploy-pages@v4

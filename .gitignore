@@ -1,0 +1,4 @@
+# Built by the workflow and deployed straight to Pages. Never committed: the
+# filenames in dist/data are the client access tokens.
+dist/
+node_modules/
