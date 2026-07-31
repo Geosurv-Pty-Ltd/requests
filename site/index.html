@@ -7,33 +7,38 @@
 <meta name="referrer" content="no-referrer">
 <meta name="color-scheme" content="dark">
 <title>Survey requests | Geosurv</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23E8402F'/><path d='M9 20.5 15 11l3.4 5.4L20.6 13 24 20.5z' fill='%23fff'/></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23EF3340'/><path d='M9 20.5 15 11l3.4 5.4L20.6 13 24 20.5z' fill='%23fff'/></svg>">
 <style>
   :root {
-    --red: #F05540;
-    --red-tint: rgba(240, 85, 64, .14);
+    /* Brand red taken from the logo artwork itself, not approximated. */
+    --red: #EF3340;
+    --red-tint: rgba(239, 51, 64, .14);
 
-    --bg: #0F1116;
-    --panel: #161922;
-    --row: #161922;
-    --row-alt: #1B1F2A;
-    --row-hover: #212636;
+    /* Warm neutral greys rather than blue tinted, matching the reference. */
+    --bg: #1A1A1A;
+    --panel: #202020;
+    --row-alt: #252525;
+    --row-hover: #2A2A2A;
 
-    --ink: #E8EBF2;
-    --muted: #98A1B3;
-    --faint: #6B7488;
-    --line: #262B38;
-    --line-soft: #1F2431;
+    --ink: #EDEDED;
+    --muted: #A3A3A3;
+    --faint: #737373;
+    --line: #2F2F2F;
+    --line-soft: #272727;
 
     --radius: 10px;
 
-    /* monday status colours, so the board and the tracker read the same */
-    --s-submitted: #6B7488;
-    --s-review:    #C77A18;
-    --s-scheduled: #3B7BD8;
-    --s-progress:  #8446C6;
-    --s-delivered: #12A150;
-    --s-closed:    #3A4152;
+    --serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+    /* Status hues, desaturated to sit calmly on a warm dark background while
+       still matching the monday board at a glance. */
+    --s-submitted: #6E6E6E;
+    --s-review:    #B07A22;
+    --s-scheduled: #3E6FA8;
+    --s-progress:  #7A52A8;
+    --s-delivered: #2E8B57;
+    --s-closed:    #3F3F3F;
   }
 
   * { box-sizing: border-box; }
@@ -43,7 +48,7 @@
     margin: 0;
     background: var(--bg);
     color: var(--ink);
-    font: 400 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font: 400 15px/1.5 var(--sans);
     -webkit-font-smoothing: antialiased;
   }
 
@@ -56,13 +61,10 @@
     display: flex; align-items: center; justify-content: space-between;
     gap: 16px; min-height: 60px; padding: 11px 0;
   }
-  /* The logo artwork is dark navy on transparent, so it needs a light chip
-     behind it to stay legible on a dark page. */
-  .logomark {
-    background: #fff; border-radius: 7px; padding: 6px 10px;
-    display: inline-flex; align-items: center;
-  }
-  .logo { height: 22px; width: auto; display: block; }
+  /* The logo is inlined so its blue half can follow the page. Those paths are
+     fill="currentColor"; the red stays the brand red. No chip behind it, so it
+     sits transparent on the header. */
+  .logo { height: 24px; width: auto; display: block; color: var(--ink); }
   .stamp { text-align: right; font-size: 12px; line-height: 1.35; color: var(--faint); white-space: nowrap; }
   .stamp b { display: block; color: var(--muted); font-weight: 500; }
 
@@ -73,7 +75,11 @@
     font-size: 11.5px; font-weight: 600; letter-spacing: .07em;
     text-transform: uppercase; color: var(--red); margin: 0 0 6px;
   }
-  h1 { margin: 0; font-size: 24px; line-height: 1.2; font-weight: 650; letter-spacing: -.02em; }
+  h1 {
+    margin: 0;
+    font-family: var(--serif);
+    font-size: 30px; line-height: 1.15; font-weight: 400; letter-spacing: 0;
+  }
 
   /* ---------- status filter pills ---------- */
 
@@ -89,7 +95,7 @@
   }
   /* Must exclude the selected chip: this selector outranks the pressed rule
      below on specificity, and would repaint its label to the wrong colour. */
-  .chip:hover:not([aria-pressed="true"]) { border-color: #3A4152; color: var(--ink); background: var(--row-hover); }
+  .chip:hover:not([aria-pressed="true"]) { border-color: #3F3F3F; color: var(--ink); background: var(--row-hover); }
   .chip .swatch { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; }
   .chip .n { font-variant-numeric: tabular-nums; font-weight: 620; color: var(--ink); }
   .chip[aria-pressed="true"] { border-color: var(--red); background: var(--red); color: #fff; }
@@ -113,22 +119,38 @@
     font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase;
     color: var(--faint);
     padding: 10px 12px;
-    background: #12151D;
+    background: #1C1C1C;
     border-bottom: 1px solid var(--line);
     white-space: nowrap;
   }
 
   /* One line per request. Anything too long is clipped with an ellipsis and
      carries the full text in a title attribute. */
+  /* Every cell, pill and link in a row shares one size, family and line-height,
+     so nothing sits at a different baseline or optical weight. */
   tbody td {
     padding: 0 12px;
-    height: 44px;
+    height: 46px;
     border-bottom: 1px solid var(--line-soft);
+    font-family: var(--sans);
     font-size: 13.5px;
+    line-height: 20px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
+  tbody td, tbody td .status, tbody td .station, tbody td .link, tbody td .rid, tbody td .by {
+    font-size: 13.5px;
+    line-height: 20px;
+  }
+
+  /* A status coloured rule down the left of each row, as in the reference. */
+  tbody tr[data-status="Submitted"]    td.c-title { box-shadow: inset 3px 0 0 var(--s-submitted); }
+  tbody tr[data-status="Under review"] td.c-title { box-shadow: inset 3px 0 0 var(--s-review); }
+  tbody tr[data-status="Scheduled"]    td.c-title { box-shadow: inset 3px 0 0 var(--s-scheduled); }
+  tbody tr[data-status="In progress"]  td.c-title { box-shadow: inset 3px 0 0 var(--s-progress); }
+  tbody tr[data-status="Delivered"]    td.c-title { box-shadow: inset 3px 0 0 var(--s-delivered); }
+  tbody tr[data-status="Closed"]       td.c-title { box-shadow: inset 3px 0 0 var(--s-closed); }
   tbody tr:nth-child(even) td { background: var(--row-alt); }
   tbody tr:hover td { background: var(--row-hover); }
   tbody tr:last-child td { border-bottom: 0; }
@@ -137,7 +159,7 @@
      leave behind. These must stay well under the table width or the title
      collapses to zero and silently disappears. Keep the sum under ~1050px. */
   col.c-title  { width: auto; min-width: 220px; }
-  col.c-desc   { width: 150px; }
+  col.c-desc   { width: 140px; }
   col.c-by     { width: 124px; }
   col.c-status { width: 122px; }
   col.c-stn    { width: 72px; }
@@ -145,7 +167,7 @@
   col.c-id     { width: 100px; }
   /* Wide enough for the ACC icon and the Change link side by side, which is the
      only case where two links share this cell. */
-  col.c-act    { width: 140px; }
+  col.c-act    { width: 158px; }
 
   /* Never let the request title be squeezed out of existence. */
   td.c-title, th:first-child { min-width: 220px; }
@@ -156,13 +178,12 @@
 
   .t { font-weight: 550; color: var(--ink); }
   .desc, .by { color: var(--muted); }
-  .by { font-size: 12.5px; }
-  .rid { color: var(--faint); font-variant-numeric: tabular-nums; font-size: 12.5px; }
+  .rid { color: var(--faint); font-variant-numeric: tabular-nums; }
 
   .status {
-    display: inline-block; min-width: 84px; text-align: center;
-    padding: 4px 9px; border-radius: 5px;
-    font-size: 12px; font-weight: 600; color: #fff; white-space: nowrap;
+    display: inline-block; min-width: 92px; text-align: center;
+    padding: 3px 9px; border-radius: 5px;
+    font-weight: 500; color: #fff; white-space: nowrap;
   }
   .st-Submitted    { background: var(--s-submitted); }
   .st-Underreview  { background: var(--s-review); }
@@ -173,8 +194,8 @@
 
   .station {
     display: inline-block; padding: 2px 8px; border-radius: 5px;
-    background: #232838; color: var(--muted);
-    font-size: 11.5px; font-weight: 600; letter-spacing: .02em;
+    background: #2C2C2C; color: var(--muted);
+    font-weight: 500; letter-spacing: .01em;
   }
 
   .date { font-variant-numeric: tabular-nums; }
@@ -184,13 +205,13 @@
   .c-act { text-align: right; }
   .link {
     display: inline-flex; align-items: center; gap: 5px;
-    font-size: 12.5px; font-weight: 550; text-decoration: none;
+    font-weight: 500; text-decoration: none;
     padding: 4px 8px; border-radius: 6px; white-space: nowrap;
   }
   .link.acc { color: var(--red); }
   .link.acc:hover { background: var(--red-tint); }
   .link.chg { color: var(--faint); }
-  .link.chg:hover { color: var(--ink); background: #262C3C; }
+  .link.chg:hover { color: var(--ink); background: #2E2E2E; }
   .link svg { width: 12px; height: 12px; flex: 0 0 auto; }
   .link:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
 
@@ -251,7 +272,18 @@
 
 <header>
   <div class="wrap bar">
-    <span class="logomark"><img class="logo" src="geosurv-logo.png" alt="Geosurv"></span>
+    <svg class="logo" viewBox="0 0 1500 347" role="img" aria-label="Geosurv" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M123.422 39.0926C146.407 36.5407 172.719 44.2973 191.976 56.9219L192.988 40.0659C207.475 39.8161 222.465 39.9528 236.99 39.902C236.372 55.2595 236.807 73.5964 236.806 89.1243L236.851 181.113C236.856 195.885 237.611 225.771 235.967 239.183C234.685 250.099 231.541 260.715 226.673 270.571C203.888 315.597 147.535 324.224 102.716 313.489C85.3088 309.32 72.1193 303.347 56.4327 295.374C60.6401 286.081 64.6679 276.363 68.6947 266.964L71.3725 261.22C90.9396 272.353 110.51 279.285 133.229 279.13C154.772 278.982 175.986 271.617 185.8 251.105C191.833 238.494 191.245 226.154 191.12 212.6C150.896 236.709 97.7197 235.555 60.8821 205.217C22.6356 173.719 20.1076 109.245 52.074 72.4963C70.9484 50.798 95.2118 41.365 123.422 39.0926ZM133.651 191.81C165.468 190.188 189.937 163.079 188.284 131.278C186.631 99.478 159.484 75.0474 127.67 76.7297C95.8989 78.4105 71.4973 105.499 73.1478 137.256C74.7985 169.013 101.877 193.429 133.651 191.81Z" fill="currentColor"/>
+<path d="M568.161 35.4426C594.303 32.239 622.977 40.1987 644.84 55.6043C687.335 85.5481 694.811 150.941 664.867 192.221C647.267 216.485 621.201 226.765 591.91 231.195C560.618 232.781 533.669 228.052 508.309 207.844C488.787 191.993 478.02 169.662 475.628 144.911C469.865 85.2853 509.211 40.9884 568.161 35.4426ZM586.263 192.41C618.907 188.42 642.091 158.675 637.979 126.062C633.866 93.4501 604.022 70.3859 571.409 74.6162C538.965 78.8248 516.036 108.466 520.127 140.909C524.218 173.353 553.789 196.38 586.263 192.41Z" fill="currentColor"/>
+<path d="M348.236 34.6897C349.36 34.4655 350.502 34.5161 351.64 34.4357C388.957 31.8007 425.926 46.7488 445.759 79.5737C458.656 100.96 462.581 126.572 456.678 150.837L368.06 150.641C346.829 150.634 324.27 150.989 303.202 150.235C317.915 199.72 376.521 202.635 415.463 180.058C419.825 177.529 423.7 174.857 427.829 171.969L429.299 171.026C432.357 172.244 449.275 198.565 452.321 203.089C430.683 219.369 408.891 228.547 381.839 231.331C323.882 237.508 261.482 207.418 255.891 143.875C250.571 83.4288 288.861 40.615 348.236 34.6897ZM357.788 114.331L412.363 114.307C410.836 83.9581 386.768 72.3921 359.072 72.7895C330.893 74.6081 311.733 86.6338 303.336 114.354L357.788 114.331Z" fill="currentColor"/>
+<path d="M1026.96 39.4971C1043.56 39.6032 1060.17 39.5922 1076.78 39.4644L1076.71 83.0898L1076.77 123.111C1076.79 155.513 1075.97 184.292 1051.53 209.287C1017.03 244.574 952.302 243.723 917.197 209.796C887.812 181.39 891.379 143.273 891.409 105.844C891.504 83.745 891.474 61.645 891.321 39.5461L941.096 39.5015L941.067 140.74C941.147 153.395 942.81 166.406 950.94 176.472C972.81 203.557 1020.22 192.091 1025.84 156.941C1028.1 142.828 1027.1 128.073 1027.1 113.924C1027.18 89.1147 1027.13 64.3057 1026.96 39.4971Z" fill="#EF3340"/>
+<path d="M773.423 34.6987C797.285 30.6221 835.363 39.8143 858.2 49.0925C855.168 61.029 850.913 74.1606 847.558 86.2273C829.922 78.9154 813.947 74.3692 794.655 73.0606C779.809 71.5644 750.527 75.1533 749.194 94.6065C748.198 109.171 783.911 111.165 794.106 112.689C801.613 113.775 809.062 115.232 816.423 117.054C832.375 121.119 849.382 127.699 860.896 139.929C879.345 159.539 877.829 195.084 857.409 212.857C834.529 232.775 803.628 234.726 774.719 233.433C744.038 230.5 724.664 223.978 697.188 211.152L712.908 175.771C738.75 189.217 766.172 197.618 795.71 194.933C805.386 193.791 818.518 191.238 824.824 183.086C842.058 160.803 791.103 155.387 779.655 153.066C758.415 148.763 737.453 145.009 719.904 131.49C697.986 114.608 698.428 80.7536 715 60.4667C729.072 43.3951 752.285 36.8062 773.423 34.6987Z" fill="#EF3340"/>
+<path d="M1248.54 40.1055L1298.14 40.0005C1304.31 52.3505 1311.94 71.3729 1317.64 84.4013L1357.12 174.497L1414.79 40.0858L1464.51 40.0472C1459.78 51.7283 1452.19 66.9858 1446.71 78.7996C1438.54 94.875 1430.08 114.267 1422.37 130.776L1376.61 229.003L1337.75 229.015C1326.62 206.497 1315.74 182.568 1304.96 159.741L1248.54 40.1055Z" fill="#EF3340"/>
+<path d="M1187.64 39.0866C1202.42 37.248 1219.38 42.4539 1232.15 49.7376C1228.26 61.4714 1223.82 73.5499 1219.69 85.2403C1196.38 71.8044 1163.95 80.8874 1152.19 104.971C1145.79 118.052 1147.81 144.957 1147.82 159.988L1147.9 228.613L1138.82 228.554C1126.97 228.527 1113.93 228.255 1102.19 228.857L1102.11 39.5C1116.03 39.6006 1129.94 39.5877 1143.85 39.4613C1143.89 45.0103 1144.23 50.2057 1144.58 55.7445C1158.37 44.977 1170.21 40.5141 1187.64 39.0866Z" fill="#EF3340"/>
+<path d="M1436.81 183.184C1451.09 180.352 1464.95 189.646 1467.74 203.923C1470.54 218.199 1461.2 232.028 1446.91 234.78C1432.68 237.52 1418.91 228.231 1416.12 214.012C1413.35 199.792 1422.6 186.004 1436.81 183.184ZM1446.88 230.913C1458.98 228.178 1466.57 216.167 1463.85 204.073C1461.14 191.978 1449.13 184.37 1437.03 187.07C1424.9 189.775 1417.27 201.805 1419.99 213.925C1422.71 226.045 1434.76 233.655 1446.88 230.913Z" fill="#EF3340"/>
+<path d="M1431.05 193.249C1434.83 193.372 1438.92 192.98 1442.68 193.287C1456.95 194.454 1458.9 202.719 1448.94 211.661C1449.73 214.849 1455.9 219.667 1455.95 223.572C1454.08 225.244 1453.63 224.653 1450.39 224.705C1448.88 222.038 1444.59 213.725 1442.29 212.816C1433.23 209.251 1438.45 220.685 1436.22 224.411C1434.21 224.599 1433.39 224.746 1431.4 224.145C1430.54 219.371 1431.01 199.224 1431.05 193.249ZM1446.35 207.532C1448.21 205.835 1448.62 205.459 1449.37 203.028C1448.17 197.513 1442.65 198.052 1438.03 198.007L1436.79 198.94C1436.7 201.326 1436.25 205.564 1437.24 207.513C1440.16 208.039 1443.38 207.712 1446.35 207.532Z" fill="#EF3340"/>
+</svg>
+
     <div class="stamp" id="stamp"></div>
   </div>
 </header>
