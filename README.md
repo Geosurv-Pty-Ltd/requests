@@ -130,10 +130,16 @@ site/                           the viewer. One HTML file, no dependencies
   ~104 minutes and about ten missed slots before the first `schedule` run appeared, with the
   workflow reporting `state=active` and nothing misconfigured the whole time. If this is rebuilt
   from scratch, expect the same silence at first rather than hunting for a fault.
-- **Scheduled runs are not punctual.** The first one arrived 11 minutes after its slot. "Every 15
-  minutes" is a target, not a guarantee, which is why the viewer prints the real snapshot time
-  beside that claim. A refresh can always be forced: Actions → Refresh client viewer → Run
-  workflow.
+- **GitHub honours roughly one scheduled slot in six.** Measured over 11 hours and 8 runs: gaps
+  of 131, 98, 105, 91, 84, 65 and 81 minutes, a **93 minute average against a 15 minute cron**.
+  Every run succeeded, so this is throttling, not failure. The cron is deliberately left at 15
+  minutes anyway — more attempts means more chances, and lowering it could only make the real
+  cadence worse.
+- **Because of that, the viewer promises no interval.** It says "Updated automatically" beside
+  the real snapshot time, so the page is truthful whatever GitHub does on the day. If you ever
+  change the cron, do not reintroduce an interval claim in the header unless you have measured
+  that GitHub actually honours it. A refresh can always be forced: Actions → Refresh client
+  viewer → Run workflow.
 - The cron sits at 7/22/37/52 past rather than `*/15` on purpose. GitHub documents that runs
   scheduled on high-load minutes are delayed or dropped, and the quarter-hour marks are the
   busiest on the shared queue.

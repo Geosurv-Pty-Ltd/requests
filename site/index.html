@@ -543,9 +543,13 @@
 
     document.title = data.company + ' survey requests | Geosurv';
 
+    // Deliberately no interval promise. GitHub honours roughly one scheduled
+    // slot in six, measured at a 93 minute average against a 15 minute cron,
+    // so any stated interval would be untrue on a bad stretch. The real
+    // snapshot time above carries the information instead.
     stamp.replaceChildren();
     stamp.appendChild(el('b', null, 'Updated ' + fmtStamp(data.generated_at)));
-    stamp.appendChild(document.createTextNode('Updated every 15 minutes'));
+    stamp.appendChild(document.createTextNode('Updated automatically'));
 
     main.replaceChildren();
 
