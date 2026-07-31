@@ -373,7 +373,7 @@
     title.appendChild(el('span', 't', req.title));
     tr.appendChild(title);
 
-    if (showDesc) tr.appendChild(textCell('c-desc', 'Details', req.description, 'desc'));
+    if (showDesc) tr.appendChild(textCell('c-desc', 'Notes', req.scope_notes, 'desc'));
 
     tr.appendChild(textCell('c-by', 'Requested by', req.requested_by, 'by'));
 
@@ -440,7 +440,9 @@
   function render(data) {
     var today = todayISO();
     var all = Array.isArray(data.requests) ? data.requests : [];
-    var showDesc = all.some(function (r) { return r.description; });
+    // The Notes column earns its width only once someone has filled it in, so
+    // an empty "Scope notes (client visible)" board column costs nothing here.
+    var showDesc = all.some(function (r) { return r.scope_notes; });
 
     document.title = data.company + ' survey requests | Geosurv';
 
@@ -481,7 +483,7 @@
     table.appendChild(cols);
 
     var heads = ['Request'];
-    if (showDesc) heads.push('Details');
+    if (showDesc) heads.push('Notes');
     heads = heads.concat(['Requested by', 'Status', 'Station', 'Required by', 'Scheduled', 'Delivered', 'Request ID', '']);
 
     var thead = el('thead');

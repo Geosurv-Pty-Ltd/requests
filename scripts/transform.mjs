@@ -18,6 +18,11 @@ export const COLUMNS = {
   // The client's own person who raised the request. Safe to show back to that
   // same client, and only that client ever receives this payload.
   requested_by: 'short_textiu99ld3y',
+  // "Scope notes (client visible)". A separate column from Description on
+  // purpose: Description holds internal notes and other people's email
+  // addresses, so it can never be published. This one is named for its
+  // audience, so anyone typing into it knows the client reads it.
+  scope_notes: 'long_text_mm5spw9g',
 };
 
 /** Columns that must never reach a client payload, by id or by title. */
@@ -36,6 +41,7 @@ export const ALLOWED_KEYS = [
   'request_id',
   'title',
   'requested_by',
+  'scope_notes',
   'status',
   'station',
   'required_by',
@@ -100,6 +106,7 @@ export function toRequest(item, counter) {
     // Redacted too: this is a free text field, so someone could type an address
     // into it just as easily as into the title.
     requested_by: redactEmails(text('requested_by'), counter),
+    scope_notes: redactEmails(text('scope_notes'), counter),
     status,
     station: text('station'),
     required_by: text('required_by'),

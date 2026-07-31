@@ -8,7 +8,7 @@ const JH = 'aaaabbbbccccddddeeeeffff00001111';
 const NOW = '2026-07-30T04:00:00.000Z';
 
 /** Build a raw monday item the way the API returns one. */
-function item({ id, name, company, status, station, due, sched, delivered, link, by = null, extra = [] }) {
+function item({ id, name, company, status, station, due, sched, delivered, link, by = null, scope = null, extra = [] }) {
   const cv = (colKey, text, value = null) => ({ id: COLUMNS[colKey], text, value });
   return {
     id,
@@ -23,6 +23,7 @@ function item({ id, name, company, status, station, due, sched, delivered, link,
       cv('deliverable_link', link ? 'Open in ACC' : null, link ? JSON.stringify({ url: link, text: 'Open in ACC' }) : null),
       cv('request_id', id),
       cv('requested_by', by),
+      cv('scope_notes', scope),
       ...extra,
     ],
   };
@@ -65,6 +66,7 @@ test('a payload carries only the whitelisted keys', () => {
     'requested_by',
     'required_by',
     'scheduled_date',
+    'scope_notes',
     'station',
     'status',
     'title',
@@ -109,6 +111,51 @@ test('excluded columns are dropped even when the API returns them', () => {
                     'single_selectpy75o9v', 'single_selectdh7jkhm']) {
     assert.ok(!serialised.includes(id), `${id} leaked`);
   }
+});
+
+test('Scope notes is published, but the internal Description never is', () => {
+  const row = item({
+    id: '8',
+    name: 'Culvert pickup',
+    company: 'Gamuda',
+    status: 'Submitted',
+    station: 'TBY',
+    due: null,
+    sched: null,
+    delivered: null,
+    link: null,
+    scope: 'Access through gate 3 only, escort required.',
+    extra: [
+      { id: 'long_textw1anfgaa', text: 'Gamuda ID: 22 | Comment: Need to send to SM', value: null },
+    ],
+  });
+
+  const { payloads } = buildPayloads([row], { [GAMUDA]: 'Gamuda' }, NOW);
+  const req = payloads.get(GAMUDA).requests[0];
+  const serialised = JSON.stringify(payloads.get(GAMUDA));
+
+  assert.equal(req.scope_notes, 'Access through gate 3 only, escort required.');
+  assert.doesNotMatch(serialised, /Need to send to SM/);
+  assert.doesNotMatch(serialised, /Gamuda ID/);
+});
+
+test('an email typed into Scope notes is redacted, not published', () => {
+  const row = item({
+    id: '9',
+    name: 'Setout',
+    company: 'Gamuda',
+    status: 'Submitted',
+    station: 'TBY',
+    due: null,
+    sched: null,
+    delivered: null,
+    link: null,
+    scope: 'Confirm with HannaShehwaro@gamuda.com.au before attending.',
+  });
+
+  const { payloads, redactions } = buildPayloads([row], { [GAMUDA]: 'Gamuda' }, NOW);
+  assert.equal(redactions, 1);
+  assert.equal(payloads.get(GAMUDA).requests[0].scope_notes, 'Confirm with [removed] before attending.');
 });
 
 test('an email typed into Requested by is redacted, not published', () => {
