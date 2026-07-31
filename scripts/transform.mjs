@@ -15,6 +15,9 @@ export const COLUMNS = {
   delivered_date: 'date_mm5bx74j',
   deliverable_link: 'link_mm5bazhw',
   request_id: 'pulse_id_mm5btw1z',
+  // The client's own person who raised the request. Safe to show back to that
+  // same client, and only that client ever receives this payload.
+  requested_by: 'short_textiu99ld3y',
 };
 
 /** Columns that must never reach a client payload, by id or by title. */
@@ -22,7 +25,6 @@ export const FORBIDDEN = [
   'emailacynbpqm',            // Email
   'long_textw1anfgaa',        // Description (internal notes, other people's emails)
   'multiple_person_mm5bcmx0', // Assigned surveyor
-  'short_textiu99ld3y',       // Requested by
   'single_selectpy75o9v',     // Service type (internal classification)
   'single_selectdh7jkhm',     // Priority (internal)
   'short_texth6z2luh6',       // Location / Area
@@ -33,6 +35,7 @@ export const FORBIDDEN = [
 export const ALLOWED_KEYS = [
   'request_id',
   'title',
+  'requested_by',
   'status',
   'station',
   'required_by',
@@ -94,6 +97,9 @@ export function toRequest(item, counter) {
   return {
     request_id: text('request_id') ?? String(item.id),
     title: redactEmails(clean(item.name) ?? 'Untitled request', counter),
+    // Redacted too: this is a free text field, so someone could type an address
+    // into it just as easily as into the title.
+    requested_by: redactEmails(text('requested_by'), counter),
     status,
     station: text('station'),
     required_by: text('required_by'),

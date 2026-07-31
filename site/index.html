@@ -5,29 +5,35 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="dark">
 <title>Survey requests | Geosurv</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23E8402F'/><path d='M9 20.5 15 11l3.4 5.4L20.6 13 24 20.5z' fill='%23fff'/></svg>">
 <style>
   :root {
-    --red: #E8402F;
-    --red-dark: #C9331F;
-    --red-tint: #FDEDEB;
-    --ink: #16181C;
-    --muted: #667085;
-    --faint: #98A2B3;
-    --line: #E7E9EE;
-    --line-soft: #F1F2F5;
-    --bg: #FAFBFC;
-    --card: #FFFFFF;
+    --red: #F05540;
+    --red-tint: rgba(240, 85, 64, .14);
+
+    --bg: #0F1116;
+    --panel: #161922;
+    --row: #161922;
+    --row-alt: #1B1F2A;
+    --row-hover: #212636;
+
+    --ink: #E8EBF2;
+    --muted: #98A1B3;
+    --faint: #6B7488;
+    --line: #262B38;
+    --line-soft: #1F2431;
+
     --radius: 10px;
 
     /* monday status colours, so the board and the tracker read the same */
-    --s-submitted: #9AA1A9;
-    --s-review:    #FDAB3D;
-    --s-scheduled: #579BFC;
-    --s-progress:  #9D50DD;
-    --s-delivered: #00C875;
-    --s-closed:    #4B5158;
+    --s-submitted: #6B7488;
+    --s-review:    #C77A18;
+    --s-scheduled: #3B7BD8;
+    --s-progress:  #8446C6;
+    --s-delivered: #12A150;
+    --s-closed:    #3A4152;
   }
 
   * { box-sizing: border-box; }
@@ -41,16 +47,22 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+  .wrap { max-width: 1320px; margin: 0 auto; padding: 0 20px; }
 
   /* ---------- header ---------- */
 
-  header { background: var(--card); border-bottom: 1px solid var(--line); }
+  header { background: var(--panel); border-bottom: 1px solid var(--line); }
   .bar {
     display: flex; align-items: center; justify-content: space-between;
     gap: 16px; min-height: 60px; padding: 11px 0;
   }
-  .logo { height: 24px; width: auto; display: block; }
+  /* The logo artwork is dark navy on transparent, so it needs a light chip
+     behind it to stay legible on a dark page. */
+  .logomark {
+    background: #fff; border-radius: 7px; padding: 6px 10px;
+    display: inline-flex; align-items: center;
+  }
+  .logo { height: 22px; width: auto; display: block; }
   .stamp { text-align: right; font-size: 12px; line-height: 1.35; color: var(--faint); white-space: nowrap; }
   .stamp b { display: block; color: var(--muted); font-weight: 500; }
 
@@ -65,80 +77,84 @@
 
   /* ---------- status filter pills ---------- */
 
-  .filters {
-    display: flex; flex-wrap: wrap; gap: 7px;
-    margin: 18px 0 14px; padding: 0; list-style: none;
-  }
+  .filters { display: flex; flex-wrap: wrap; gap: 7px; margin: 18px 0 14px; }
   .chip {
     display: inline-flex; align-items: center; gap: 7px;
     font: inherit; font-size: 13px; font-weight: 500;
     padding: 6px 11px 6px 9px;
     border: 1px solid var(--line); border-radius: 999px;
-    background: var(--card); color: var(--muted);
+    background: var(--panel); color: var(--muted);
     cursor: pointer; white-space: nowrap;
-    transition: border-color .12s ease, color .12s ease;
+    transition: border-color .12s ease, color .12s ease, background .12s ease;
   }
   /* Must exclude the selected chip: this selector outranks the pressed rule
-     below on specificity, and would repaint its label dark on dark. */
-  .chip:hover:not(:disabled):not([aria-pressed="true"]) { border-color: #CDD2DA; color: var(--ink); }
+     below on specificity, and would repaint its label to the wrong colour. */
+  .chip:hover:not([aria-pressed="true"]) { border-color: #3A4152; color: var(--ink); background: var(--row-hover); }
   .chip .swatch { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; }
-  .chip .n {
-    font-variant-numeric: tabular-nums; font-weight: 620;
-    color: var(--ink); font-size: 13px;
-  }
-  .chip[aria-pressed="true"] {
-    border-color: var(--ink); background: var(--ink); color: #fff;
-  }
+  .chip .n { font-variant-numeric: tabular-nums; font-weight: 620; color: var(--ink); }
+  .chip[aria-pressed="true"] { border-color: var(--red); background: var(--red); color: #fff; }
   .chip[aria-pressed="true"] .n { color: #fff; }
-  .chip:disabled { opacity: .45; cursor: default; }
   .chip:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
 
   /* ---------- table ---------- */
 
   .panel {
-    background: var(--card);
+    background: var(--panel);
     border: 1px solid var(--line);
     border-radius: var(--radius);
     overflow: hidden;
   }
   .scroll { overflow-x: auto; }
 
-  table { width: 100%; border-collapse: collapse; }
+  table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 
   thead th {
     text-align: left;
     font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase;
     color: var(--faint);
-    padding: 11px 14px;
-    background: #FCFCFD;
+    padding: 10px 14px;
+    background: #12151D;
     border-bottom: 1px solid var(--line);
     white-space: nowrap;
-    /* Not sticky on purpose: the rounded panel and the horizontal scroll
-       wrapper both create scroll containers, which silently kill position
-       sticky. The status filter above is the real way to cut the list down. */
   }
 
+  /* One line per request. Anything too long is clipped with an ellipsis and
+     carries the full text in a title attribute. */
   tbody td {
-    padding: 11px 14px;
+    padding: 0 14px;
+    height: 44px;
     border-bottom: 1px solid var(--line-soft);
-    vertical-align: middle;
-    font-size: 14px;
+    font-size: 13.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
+  tbody tr:nth-child(even) td { background: var(--row-alt); }
+  tbody tr:hover td { background: var(--row-hover); }
   tbody tr:last-child td { border-bottom: 0; }
-  tbody tr:hover { background: #FCFCFD; }
 
-  .c-title { min-width: 260px; }
-  .c-title .t { font-weight: 550; line-height: 1.35; }
-  .c-title .id {
-    display: block; margin-top: 2px;
-    font-size: 11.5px; color: var(--faint); font-variant-numeric: tabular-nums;
-  }
+  col.c-title  { width: auto; }
+  col.c-desc   { width: 22%; }
+  col.c-by     { width: 158px; }
+  col.c-status { width: 122px; }
+  col.c-stn    { width: 70px; }
+  col.c-date   { width: 108px; }
+  col.c-id     { width: 98px; }
+  col.c-act    { width: 142px; }
 
-  .c-status { width: 1%; }
+  /* The pill is a fixed size block, so clipping it to the cell would cut the
+     label. Nothing else can overflow this cell. */
+  td.c-status { overflow: visible; text-overflow: clip; }
+
+  .t { font-weight: 550; color: var(--ink); }
+  .desc, .by { color: var(--muted); }
+  .by { font-size: 12.5px; }
+  .rid { color: var(--faint); font-variant-numeric: tabular-nums; font-size: 12.5px; }
+
   .status {
-    display: inline-block; min-width: 104px; text-align: center;
-    padding: 5px 10px; border-radius: 5px;
-    font-size: 12.5px; font-weight: 600; color: #fff; white-space: nowrap;
+    display: inline-block; min-width: 84px; text-align: center;
+    padding: 4px 9px; border-radius: 5px;
+    font-size: 12px; font-weight: 600; color: #fff; white-space: nowrap;
   }
   .st-Submitted    { background: var(--s-submitted); }
   .st-Underreview  { background: var(--s-review); }
@@ -147,30 +163,26 @@
   .st-Delivered    { background: var(--s-delivered); }
   .st-Closed       { background: var(--s-closed); }
 
-  .c-station { width: 1%; }
   .station {
-    display: inline-block; padding: 3px 8px; border-radius: 5px;
-    background: var(--line-soft); color: var(--muted);
-    font-size: 12px; font-weight: 600; letter-spacing: .02em;
+    display: inline-block; padding: 2px 8px; border-radius: 5px;
+    background: #232838; color: var(--muted);
+    font-size: 11.5px; font-weight: 600; letter-spacing: .02em;
   }
 
-  .date { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .date { font-variant-numeric: tabular-nums; }
   .date.none { color: var(--faint); }
-  .date.late { color: var(--red); font-weight: 550; }
+  .date.late { color: var(--red); font-weight: 600; }
 
-  .c-act { width: 1%; white-space: nowrap; text-align: right; }
+  .c-act { text-align: right; }
   .link {
     display: inline-flex; align-items: center; gap: 5px;
     font-size: 12.5px; font-weight: 550; text-decoration: none;
-    padding: 5px 9px; border-radius: 7px; border: 1px solid transparent;
-    white-space: nowrap;
+    padding: 4px 8px; border-radius: 6px; white-space: nowrap;
   }
   .link.acc { color: var(--red); }
   .link.acc:hover { background: var(--red-tint); }
-  /* Quiet on purpose: this sits on all 48 rows, so a bordered button would
-     shout louder than the data it belongs to. */
-  .link.chg { color: var(--faint); margin-left: 4px; }
-  .link.chg:hover { color: var(--ink); background: var(--line-soft); }
+  .link.chg { color: var(--faint); }
+  .link.chg:hover { color: var(--ink); background: #262C3C; }
   .link svg { width: 12px; height: 12px; flex: 0 0 auto; }
   .link:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
 
@@ -179,7 +191,7 @@
   /* ---------- states ---------- */
 
   .state {
-    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
     padding: 42px 26px; text-align: center; margin: 34px 0;
   }
   .state h2 { margin: 0 0 8px; font-size: 18px; font-weight: 620; letter-spacing: -.01em; }
@@ -190,7 +202,7 @@
     display: grid; place-items: center; margin: 0 auto 16px;
     font-size: 19px; font-weight: 700;
   }
-  .state.ok .mark { background: #E7F7EE; color: #12A150; }
+  .state.ok .mark { background: rgba(18, 161, 80, .16); color: #2FCB74; }
 
   footer {
     margin: 26px 0 0; padding: 20px 0 32px;
@@ -199,34 +211,31 @@
     display: flex; flex-wrap: wrap; gap: 4px 12px; justify-content: space-between;
   }
 
-  /* ---------- mobile: table becomes a list ---------- */
+  /* ---------- mobile ----------
+     A phone cannot show eight columns on one line, so below this width the
+     table becomes one block per request. Blank dates are dropped entirely. */
 
-  @media (max-width: 780px) {
+  @media (max-width: 900px) {
     .wrap { padding: 0 14px; }
     h1 { font-size: 21px; }
-    thead { display: none; }
+    thead, colgroup { display: none; }
     table, tbody, tr, td { display: block; width: 100%; }
-    tbody tr {
-      padding: 13px 14px;
-      border-bottom: 1px solid var(--line-soft);
-    }
-    tbody tr:last-child { border-bottom: 0; }
-    tbody td { border: 0; padding: 0; }
+    table { table-layout: auto; }
+    tbody tr { padding: 12px 14px; border-bottom: 1px solid var(--line-soft); }
+    tbody tr:nth-child(even) td, tbody tr:hover td { background: transparent; }
+    tbody tr:nth-child(even) { background: var(--row-alt); }
+    tbody td { border: 0; padding: 0; height: auto; white-space: normal; }
 
-    .c-title { margin-bottom: 9px; }
-    .c-status { display: inline-block; width: auto; margin: 0 8px 9px 0; }
-    .c-station { display: inline-block; width: auto; margin-bottom: 9px; }
+    td.c-title { margin-bottom: 6px; }
+    td.c-desc { margin-bottom: 8px; font-size: 13px; }
+    td.c-status, td.c-stn { display: inline-block; width: auto; margin: 0 8px 8px 0; }
 
-    td.d { display: flex; justify-content: space-between; gap: 12px; padding: 3px 0; font-size: 13px; }
-    td.d::before {
-      content: attr(data-label);
-      color: var(--faint); font-size: 12px;
-    }
-    td.d.blank { display: none; }
+    td.k { display: flex; justify-content: space-between; gap: 12px; padding: 2px 0; font-size: 13px; }
+    td.k::before { content: attr(data-label); color: var(--faint); font-size: 12px; }
+    td.k.blank { display: none; }
 
-    .c-act { text-align: left; width: auto; margin-top: 10px; }
-    .link.chg { margin-left: 0; }
-    .link.acc { padding-left: 0; }
+    td.c-act { text-align: left; margin-top: 8px; }
+    .link.acc, .link.chg { padding-left: 0; }
   }
 </style>
 </head>
@@ -234,7 +243,7 @@
 
 <header>
   <div class="wrap bar">
-    <img class="logo" src="geosurv-logo.png" alt="Geosurv">
+    <span class="logomark"><img class="logo" src="geosurv-logo.png" alt="Geosurv"></span>
     <div class="stamp" id="stamp"></div>
   </div>
 </header>
@@ -333,31 +342,47 @@
     return svg;
   }
 
-  // ---------- table ----------
+  // ---------- rows ----------
+
+  function textCell(cls, label, value, extraClass) {
+    var td = el('td', cls + (label ? ' k' : '') + (value ? '' : ' blank'));
+    if (label) td.setAttribute('data-label', label);
+    if (value) {
+      td.title = value;
+      td.appendChild(el('span', extraClass || null, value));
+    } else {
+      td.appendChild(el('span', 'date none', '—'));
+    }
+    return td;
+  }
 
   function dateCell(label, iso, overdue) {
-    var td = el('td', 'd' + (iso ? '' : ' blank'));
+    var td = el('td', 'c-date k' + (iso ? '' : ' blank'));
     td.setAttribute('data-label', label);
     var v = fmtDate(iso);
     td.appendChild(el('span', 'date' + (v ? (overdue ? ' late' : '') : ' none'), v || '—'));
     return td;
   }
 
-  function row(req, today) {
+  function row(req, today, showDesc) {
     var tr = el('tr');
     tr.setAttribute('data-status', req.status || 'Submitted');
 
     var title = el('td', 'c-title');
+    title.title = req.title;
     title.appendChild(el('span', 't', req.title));
-    title.appendChild(el('span', 'id', 'Request ' + req.request_id));
     tr.appendChild(title);
+
+    if (showDesc) tr.appendChild(textCell('c-desc', 'Details', req.description, 'desc'));
+
+    tr.appendChild(textCell('c-by', 'Requested by', req.requested_by, 'by'));
 
     var st = el('td', 'c-status');
     var label = req.status || 'Submitted';
     st.appendChild(el('span', 'status st-' + label.replace(/\s+/g, ''), label));
     tr.appendChild(st);
 
-    var stn = el('td', 'c-station');
+    var stn = el('td', 'c-stn k' + (req.station ? '' : ' blank'));
     stn.setAttribute('data-label', 'Station');
     if (req.station) stn.appendChild(el('span', 'station', req.station));
     tr.appendChild(stn);
@@ -366,6 +391,11 @@
     tr.appendChild(dateCell('Required by', req.required_by, !done && req.required_by && req.required_by < today));
     tr.appendChild(dateCell('Scheduled', req.scheduled_date, false));
     tr.appendChild(dateCell('Delivered', req.delivered_date, false));
+
+    var id = el('td', 'c-id k');
+    id.setAttribute('data-label', 'Request');
+    id.appendChild(el('span', 'rid', req.request_id));
+    tr.appendChild(id);
 
     var act = el('td', 'c-act');
     if (req.deliverable_link) {
@@ -383,7 +413,7 @@
     b.rel = 'noopener noreferrer';
     b.title = 'Request a change to this request';
     b.appendChild(icon('M11.5 2.5a1.77 1.77 0 0 1 2.5 2.5L6 13l-3.5 1 1-3.5zM10 4l2 2'));
-    b.appendChild(el('span', null, 'Request a change'));
+    b.appendChild(el('span', null, 'Change'));
     act.appendChild(b);
     tr.appendChild(act);
 
@@ -401,8 +431,7 @@
     }
     b.appendChild(el('span', null, label));
     b.appendChild(el('span', 'n', String(count)));
-    if (!count) b.disabled = true;
-    else b.addEventListener('click', function () { onPick(b); });
+    b.addEventListener('click', function () { onPick(b); });
     return b;
   }
 
@@ -411,6 +440,7 @@
   function render(data) {
     var today = todayISO();
     var all = Array.isArray(data.requests) ? data.requests : [];
+    var showDesc = all.some(function (r) { return r.description; });
 
     document.title = data.company + ' survey requests | Geosurv';
 
@@ -439,21 +469,29 @@
       return;
     }
 
-    // table first, so the chips can filter it
     var panel = el('div', 'panel');
     var scroll = el('div', 'scroll');
     var table = el('table');
 
+    var cols = el('colgroup');
+    var colDefs = ['c-title'];
+    if (showDesc) colDefs.push('c-desc');
+    colDefs = colDefs.concat(['c-by', 'c-status', 'c-stn', 'c-date', 'c-date', 'c-date', 'c-id', 'c-act']);
+    colDefs.forEach(function (c) { cols.appendChild(el('col', c)); });
+    table.appendChild(cols);
+
+    var heads = ['Request'];
+    if (showDesc) heads.push('Details');
+    heads = heads.concat(['Requested by', 'Status', 'Station', 'Required by', 'Scheduled', 'Delivered', 'Request ID', '']);
+
     var thead = el('thead');
     var htr = el('tr');
-    ['Request', 'Status', 'Station', 'Required by', 'Scheduled', 'Delivered', ''].forEach(function (h) {
-      htr.appendChild(el('th', null, h));
-    });
+    heads.forEach(function (h) { htr.appendChild(el('th', null, h)); });
     thead.appendChild(htr);
     table.appendChild(thead);
 
     var tbody = el('tbody');
-    all.forEach(function (r) { tbody.appendChild(row(r, today)); });
+    all.forEach(function (r) { tbody.appendChild(row(r, today, showDesc)); });
     table.appendChild(tbody);
     scroll.appendChild(table);
     panel.appendChild(scroll);
@@ -462,7 +500,6 @@
     empty.hidden = true;
     panel.appendChild(empty);
 
-    // filter chips
     var chips = el('div', 'filters');
     var buttons = [];
 
@@ -476,14 +513,26 @@
       });
       empty.hidden = shown > 0;
       scroll.hidden = shown === 0;
+      // Zebra follows what is on screen, not the underlying row order.
+      var i = 0;
+      Array.prototype.forEach.call(tbody.children, function (tr) {
+        if (tr.hidden) return;
+        i += 1;
+        tr.style.background = '';
+        Array.prototype.forEach.call(tr.children, function (td) {
+          td.style.background = i % 2 === 0 ? 'var(--row-alt)' : '';
+        });
+      });
     }
 
-    var allChip = chip('All requests', null, all.length, function (b) { apply(b, null); });
+    var allChip = chip('All', null, all.length, function (b) { apply(b, null); });
     buttons.push(allChip);
     chips.appendChild(allChip);
 
     STATUSES.forEach(function (s) {
       var n = all.filter(function (r) { return (r.status || 'Submitted') === s.label; }).length;
+      // A stage nobody is at is noise, so it is left out entirely.
+      if (!n) return;
       var b = chip(s.label, s.colour, n, function (btn) { apply(btn, s.label); });
       buttons.push(b);
       chips.appendChild(b);

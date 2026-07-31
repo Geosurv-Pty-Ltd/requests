@@ -8,7 +8,7 @@ const JH = 'aaaabbbbccccddddeeeeffff00001111';
 const NOW = '2026-07-30T04:00:00.000Z';
 
 /** Build a raw monday item the way the API returns one. */
-function item({ id, name, company, status, station, due, sched, delivered, link, extra = [] }) {
+function item({ id, name, company, status, station, due, sched, delivered, link, by = null, extra = [] }) {
   const cv = (colKey, text, value = null) => ({ id: COLUMNS[colKey], text, value });
   return {
     id,
@@ -22,6 +22,7 @@ function item({ id, name, company, status, station, due, sched, delivered, link,
       cv('delivered_date', delivered),
       cv('deliverable_link', link ? 'Open in ACC' : null, link ? JSON.stringify({ url: link, text: 'Open in ACC' }) : null),
       cv('request_id', id),
+      cv('requested_by', by),
       ...extra,
     ],
   };
@@ -37,6 +38,7 @@ const GAMUDA_ROW = item({
   sched: '2026-08-01',
   delivered: null,
   link: null,
+  by: 'Hanna Shehwaro',
 });
 
 const JH_ROW = item({
@@ -51,23 +53,27 @@ const JH_ROW = item({
   link: null,
 });
 
-test('a payload carries only the nine whitelisted keys', () => {
+test('a payload carries only the whitelisted keys', () => {
   const { payloads } = buildPayloads([GAMUDA_ROW], { [GAMUDA]: 'Gamuda' }, NOW);
   const req = payloads.get(GAMUDA).requests[0];
 
   assert.deepEqual(Object.keys(req).sort(), [
     'closed',
-    'delivered_date',
     'deliverable_link',
+    'delivered_date',
     'request_id',
+    'requested_by',
+    'required_by',
+    'scheduled_date',
     'station',
     'status',
     'title',
-  ].concat(['required_by', 'scheduled_date']).sort());
+  ].sort());
 
   assert.equal(req.request_id, '2809849865');
   assert.equal(req.status, 'In progress');
   assert.equal(req.closed, false);
+  assert.equal(req.requested_by, 'Hanna Shehwaro');
 });
 
 test('excluded columns are dropped even when the API returns them', () => {
@@ -85,7 +91,8 @@ test('excluded columns are dropped even when the API returns them', () => {
       { id: 'emailacynbpqm', text: 'ZiaSamano@gamuda.com.au', value: null },
       { id: 'long_textw1anfgaa', text: 'Internal note, contact FatemaShukur@gamuda.com.au', value: null },
       { id: 'multiple_person_mm5bcmx0', text: 'Jordan Palleson', value: null },
-      { id: 'short_textiu99ld3y', text: 'Hanna Shehwaro', value: null },
+      { id: 'single_selectpy75o9v', text: 'Utility Locating', value: null },
+      { id: 'single_selectdh7jkhm', text: 'Urgent', value: null },
     ],
   });
 
@@ -95,11 +102,32 @@ test('excluded columns are dropped even when the API returns them', () => {
   assert.doesNotMatch(serialised, /@/);
   assert.doesNotMatch(serialised, /gamuda\.com\.au/i);
   assert.doesNotMatch(serialised, /Jordan Palleson/);
-  assert.doesNotMatch(serialised, /Hanna Shehwaro/);
   assert.doesNotMatch(serialised, /Internal note/);
-  for (const id of ['emailacynbpqm', 'long_textw1anfgaa', 'multiple_person_mm5bcmx0', 'short_textiu99ld3y']) {
+  assert.doesNotMatch(serialised, /Utility Locating/);
+  assert.doesNotMatch(serialised, /Urgent/);
+  for (const id of ['emailacynbpqm', 'long_textw1anfgaa', 'multiple_person_mm5bcmx0',
+                    'single_selectpy75o9v', 'single_selectdh7jkhm']) {
     assert.ok(!serialised.includes(id), `${id} leaked`);
   }
+});
+
+test('an email typed into Requested by is redacted, not published', () => {
+  const row = item({
+    id: '7',
+    name: 'Culvert pickup',
+    company: 'Gamuda',
+    status: 'Submitted',
+    station: 'TBY',
+    due: null,
+    sched: null,
+    delivered: null,
+    link: null,
+    by: 'Hanna Shehwaro HannaShehwaro@gamuda.com.au',
+  });
+
+  const { payloads, redactions } = buildPayloads([row], { [GAMUDA]: 'Gamuda' }, NOW);
+  assert.equal(redactions, 1);
+  assert.equal(payloads.get(GAMUDA).requests[0].requested_by, 'Hanna Shehwaro [removed]');
 });
 
 test('one company never sees another company rows', () => {
