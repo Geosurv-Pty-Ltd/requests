@@ -47,7 +47,7 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  .wrap { max-width: 1320px; margin: 0 auto; padding: 0 20px; }
+  .wrap { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
 
   /* ---------- header ---------- */
 
@@ -112,7 +112,7 @@
     text-align: left;
     font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase;
     color: var(--faint);
-    padding: 10px 14px;
+    padding: 10px 12px;
     background: #12151D;
     border-bottom: 1px solid var(--line);
     white-space: nowrap;
@@ -121,7 +121,7 @@
   /* One line per request. Anything too long is clipped with an ellipsis and
      carries the full text in a title attribute. */
   tbody td {
-    padding: 0 14px;
+    padding: 0 12px;
     height: 44px;
     border-bottom: 1px solid var(--line-soft);
     font-size: 13.5px;
@@ -133,18 +133,26 @@
   tbody tr:hover td { background: var(--row-hover); }
   tbody tr:last-child td { border-bottom: 0; }
 
-  col.c-title  { width: auto; }
-  col.c-desc   { width: 22%; }
-  col.c-by     { width: 158px; }
+  /* table-layout is fixed, so the auto column only gets what the fixed ones
+     leave behind. These must stay well under the table width or the title
+     collapses to zero and silently disappears. Keep the sum under ~1050px. */
+  col.c-title  { width: auto; min-width: 220px; }
+  col.c-desc   { width: 150px; }
+  col.c-by     { width: 124px; }
   col.c-status { width: 122px; }
-  col.c-stn    { width: 70px; }
-  col.c-date   { width: 108px; }
-  col.c-id     { width: 98px; }
-  col.c-act    { width: 142px; }
+  col.c-stn    { width: 72px; }
+  col.c-date   { width: 112px; }
+  col.c-id     { width: 100px; }
+  /* Wide enough for the ACC icon and the Change link side by side, which is the
+     only case where two links share this cell. */
+  col.c-act    { width: 140px; }
 
-  /* The pill is a fixed size block, so clipping it to the cell would cut the
-     label. Nothing else can overflow this cell. */
-  td.c-status { overflow: visible; text-overflow: clip; }
+  /* Never let the request title be squeezed out of existence. */
+  td.c-title, th:first-child { min-width: 220px; }
+
+  /* These hold a fixed size pill, so the ellipsis rule would cut the label
+     rather than the text. Nothing else can overflow these cells. */
+  td.c-status, td.c-stn { overflow: visible; text-overflow: clip; }
 
   .t { font-weight: 550; color: var(--ink); }
   .desc, .by { color: var(--muted); }
@@ -403,8 +411,11 @@
       a.href = req.deliverable_link;
       a.target = '_blank';
       a.rel = 'noopener noreferrer';
+      // Icon only: the label plus the Change link together overflowed the cell,
+      // and this one shares a row with it on every delivered request.
+      a.title = 'Open the deliverable in ACC';
+      a.setAttribute('aria-label', 'Open the deliverable in ACC');
       a.appendChild(icon('M6.5 3H3.5A1.5 1.5 0 0 0 2 4.5v8A1.5 1.5 0 0 0 3.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-3M9.5 2h4.5v4.5M13.5 2.5 7 9'));
-      a.appendChild(el('span', null, 'ACC'));
       act.appendChild(a);
     }
     var b = el('a', 'link chg');
