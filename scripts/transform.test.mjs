@@ -39,7 +39,7 @@ const GAMUDA_ROW = item({
   sched: '2026-08-01',
   delivered: null,
   link: null,
-  by: 'Hanna Shehwaro',
+  by: 'Alex Example',
 });
 
 const JH_ROW = item({
@@ -75,7 +75,7 @@ test('a payload carries only the whitelisted keys', () => {
   assert.equal(req.request_id, '2809849865');
   assert.equal(req.status, 'In progress');
   assert.equal(req.closed, false);
-  assert.equal(req.requested_by, 'Hanna Shehwaro');
+  assert.equal(req.requested_by, 'Alex Example');
 });
 
 test('excluded columns are dropped even when the API returns them', () => {
@@ -90,8 +90,8 @@ test('excluded columns are dropped even when the API returns them', () => {
     delivered: null,
     link: null,
     extra: [
-      { id: 'emailacynbpqm', text: 'ZiaSamano@gamuda.com.au', value: null },
-      { id: 'long_textw1anfgaa', text: 'Internal note, contact FatemaShukur@gamuda.com.au', value: null },
+      { id: 'emailacynbpqm', text: 'sam@example.com', value: null },
+      { id: 'long_textw1anfgaa', text: 'Internal note, contact jordan@example.com', value: null },
       { id: 'multiple_person_mm5bcmx0', text: 'Jordan Palleson', value: null },
       { id: 'single_selectpy75o9v', text: 'Utility Locating', value: null },
       { id: 'single_selectdh7jkhm', text: 'Urgent', value: null },
@@ -102,7 +102,7 @@ test('excluded columns are dropped even when the API returns them', () => {
   const serialised = JSON.stringify(payloads.get(GAMUDA));
 
   assert.doesNotMatch(serialised, /@/);
-  assert.doesNotMatch(serialised, /gamuda\.com\.au/i);
+  assert.doesNotMatch(serialised, /example\.com/i);
   assert.doesNotMatch(serialised, /Jordan Palleson/);
   assert.doesNotMatch(serialised, /Internal note/);
   assert.doesNotMatch(serialised, /Utility Locating/);
@@ -150,7 +150,7 @@ test('an email typed into Scope notes is redacted, not published', () => {
     sched: null,
     delivered: null,
     link: null,
-    scope: 'Confirm with HannaShehwaro@gamuda.com.au before attending.',
+    scope: 'Confirm with alex@example.com before attending.',
   });
 
   const { payloads, redactions } = buildPayloads([row], { [GAMUDA]: 'Gamuda' }, NOW);
@@ -169,12 +169,12 @@ test('an email typed into Requested by is redacted, not published', () => {
     sched: null,
     delivered: null,
     link: null,
-    by: 'Hanna Shehwaro HannaShehwaro@gamuda.com.au',
+    by: 'Alex Example alex@example.com',
   });
 
   const { payloads, redactions } = buildPayloads([row], { [GAMUDA]: 'Gamuda' }, NOW);
   assert.equal(redactions, 1);
-  assert.equal(payloads.get(GAMUDA).requests[0].requested_by, 'Hanna Shehwaro [removed]');
+  assert.equal(payloads.get(GAMUDA).requests[0].requested_by, 'Alex Example [removed]');
 });
 
 test('one company never sees another company rows', () => {
@@ -192,7 +192,7 @@ test('one company never sees another company rows', () => {
 test('an email typed into a request title is redacted, not published', () => {
   const row = item({
     id: '2',
-    name: 'Setout for ZiaSamano@gamuda.com.au please',
+    name: 'Setout for sam@example.com please',
     company: 'Gamuda',
     status: 'Submitted',
     station: 'TBY',
